@@ -139,6 +139,48 @@ class Pokemon:
         else:
             print("Cannot evolve to same or lower level")
 
+"""
+%TAREA%
+Implementar la clase CombatEngine con un método calculate_damage(): Esta función recibirá al attacker (Pokémon), al defender (Pokémon) y al move (Movimiento).
+Integrar Dependencias (Composición): Dentro de calculate_damage, debe usar (llamar a) los objetos y sus métodos:
+
+    El nivel y ataque del attacker (de pokemon.level y pokemon.stats).
+    La defensa del defender (de pokemon.stats).
+    El poder del movimiento (de move.power).
+    La efectividad del tipo (llamando al get_effectiveness de la instancia de TypeRelations).
+
+Implementar hit_accuracy(): Añadir lógica para determinar si un movimiento acierta o falla.
+"""
+
+"""Asumiendo que existe class Move con las siguientes caracteristicas:
+Move: Debe contener los atributos de un ataque: name, type (string), power, accuracy, y pp.
+"""
+class CombatEngine:
+    @staticmethod
+    def hit_accuracy(attack: Move, defender_types: List[str]):
+        import random 
+        tp = TypeRelations()
+        effect = tp.get_effectiveness(attack.type, defender_types)
+        factor = random.random()
+        
+        return  attack.accuracy > (factor*effect)/(factor+1), effect # si es mayor entonces el ataque acierta
+
+    @staticmethod
+    def calculate_damage(attacker: Pokemon, defender: Pokemon, move: Move):
+        att_stats = attacker.stats
+        def_stats = defender.stats
+        is_able_to_attack, multiplier = CombatEngine.hit_accuracy(move, defender.types)
+        # tener en cuenta quien tiene mas nivel
+        rlevel = (attacker.level/defender.level) 
+        # tener en cuenta si atacante tiene mas ataque que la defensa del defensa
+        rdef = (att_stats.attack/def_stats.defense)
+        # ataque -> si is_able_to_attack = 0 entonces ataque fallido, sino, calcular ataque
+        damage = int(is_able_to_attack)*(rlevel*rdef*multiplier*move.power)
+        print(f"Damage: {damage}")
+        return damage
+
+
+
 
 class Trainer:
     def __init__(self, nombre: str, team: str, pokemon: List[Pokemon]):
