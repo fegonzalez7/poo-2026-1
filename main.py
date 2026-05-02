@@ -168,6 +168,13 @@ class Trainer:
         else:
             print("Indice de Pokémon no valido.")
 
+class Move:
+    def __init__(self, name: str, type: str, power: float, accuracy: int , pp: int):
+        self._name = name 
+        self._type = type 
+        self._power = power 
+        self._accuracy = accuracy
+        self._pp = pp
 
 def main() -> None:
     relations = TypeRelations()
