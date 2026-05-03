@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 
@@ -175,6 +176,67 @@ class Move:
         self._power = power 
         self._accuracy = accuracy
         self._pp = pp
+
+class Moveset:
+    def __init__(self, moves: List[Move] = None):
+        self.moves: List[Move] = []
+        if moves:
+            for move in moves:
+                self.add_move(move)
+
+    def add_move(self, move: Move) -> bool:
+        if len(self.moves) < 4:
+            self.moves.append(move)
+            print(f"¡El Pokémon aprendió {move._name}!")
+            time.sleep(0.5)
+            return True
+        else:
+            print(f"El Pokémon intenta aprender {move._name}, pero ya conoce 4 movimientos.")
+            time.sleep(0.5)
+            return False
+
+    def remove_move(self, index: int) -> bool:
+        if 0 <= index < len(self.moves):
+            removed_move = self.moves.pop(index)
+            print("1, 2 y... ¡Poof!")
+            time.sleep(1)
+            print(f"El Pokémon olvidó cómo usar {removed_move._name}.")
+            time.sleep(0.5)
+            return True
+        else:
+            print("Índice no válido. No se pudo olvidar el movimiento.")
+            return False
+
+    def replace_move(self, index: int, new_move: Move) -> bool:
+        if 0 <= index < len(self.moves):
+            old_move = self.moves[index]
+            print("1, 2 y... ¡Poof!")
+            time.sleep(1)
+            print(f"El Pokémon olvidó cómo usar {old_move._name} y...")
+            time.sleep(1)
+            self.moves[index] = new_move
+            print(f"¡Aprendió {new_move._name}!")
+            time.sleep(0.5)
+            return True
+        else:
+            print("Índice no válido. No se pudo reemplazar el movimiento.")
+            return False
+
+    def get_moves(self) -> List[Move]:
+        return self.moves
+
+    def show_moves(self) -> None:
+        if not self.moves:
+            print("El Pokémon aún no conoce ningún movimiento.")
+            time.sleep(0.5)
+        else:
+            print("\n" + "="*45)
+            print("                 MOVIMIENTOS")
+            print("="*45)
+            for i, move in enumerate(self.moves):
+                print(f"[{i + 1}] {move._name.ljust(12)} | Tipo: {move._type.ljust(8)} | Poder: {str(move._power).ljust(3)} | PP: {move._pp}")
+            print("="*45 + "\n")
+            time.sleep(0.5)
 
 def main() -> None:
     relations = TypeRelations()
