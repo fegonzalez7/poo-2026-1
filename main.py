@@ -1,3 +1,5 @@
+import random
+import time  # noqa: I001
 from typing import List
 
 
@@ -82,6 +84,100 @@ class Stats:
         )
 
 
+class Move:
+    def __init__(self, name: str, type: str, power: float, accuracy: int, pp: int):
+        self._name = name
+        self._type = type
+        self._power = power
+        self._accuracy = accuracy
+        self._pp = pp
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @property
+    def power(self) -> float:
+        return self._power
+
+    @property
+    def accuracy(self) -> int:
+        return self._accuracy
+
+    @property
+    def pp(self) -> int:
+        return self._pp
+
+
+class Moveset:
+    def __init__(self, moves: List[Move] | None = None):
+        self.moves: List[Move] = []
+        if moves:
+            for move in moves:
+                self.add_move(move)
+
+    def add_move(self, move: Move) -> bool:
+        if len(self.moves) < 4:
+            self.moves.append(move)
+            print(f"¡El Pokémon aprendió {move.name}!")
+            time.sleep(0.5)
+            return True
+        else:
+            print(f"El Pokémon intenta aprender {move.name}, pero tiene 4 movimientos.")
+            time.sleep(0.5)
+            return False
+
+    def remove_move(self, index: int) -> bool:
+        if 0 <= index < len(self.moves):
+            removed_move = self.moves.pop(index)
+            print("1, 2 y... ¡Poof!")
+            time.sleep(1)
+            print(f"El Pokémon olvidó cómo usar {removed_move.name}.")
+            time.sleep(0.5)
+            return True
+        else:
+            print("Índice no válido. No se pudo olvidar el movimiento.")
+            return False
+
+    def replace_move(self, index: int, new_move: Move) -> bool:
+        if 0 <= index < len(self.moves):
+            old_move = self.moves[index]
+            print("1, 2 y... ¡Poof!")
+            time.sleep(1)
+            print(f"El Pokémon olvidó cómo usar {old_move.name} y...")
+            time.sleep(1)
+            self.moves[index] = new_move
+            print(f"¡Aprendió {new_move.name}!")
+            time.sleep(0.5)
+            return True
+        else:
+            print("Índice no válido. No se pudo reemplazar el movimiento.")
+            return False
+
+    def get_moves(self) -> List[Move]:
+        return self.moves
+
+    def show_moves(self) -> None:
+        if not self.moves:
+            print("El Pokémon aún no conoce ningún movimiento.")
+            time.sleep(0.5)
+        else:
+            print("\n" + "=" * 45)
+            print("                 MOVIMIENTOS")
+            print("=" * 45)
+            for i, move in enumerate(self.moves):
+                print(
+                    f"[{i + 1}] {move.name.ljust(12)} | Tipo: {move.type.ljust(8)}"
+                    f"| Poder: {str(move.power).ljust(3)} | PP: {move.pp}"
+                )
+            print("=" * 45 + "\n")
+            time.sleep(0.5)
+
+
 class Pokemon:
     def __init__(
         self,
@@ -93,6 +189,7 @@ class Pokemon:
         defense: float = 0.5,
         level: int = 1,
         special_ability: str = "None",
+        moveset: Moveset | None = None,
     ) -> None:
         self.name = name
         self.types = types
@@ -102,20 +199,19 @@ class Pokemon:
         self.defense = defense
         self.level = level
         self.special_ability = special_ability
+        self.moveset = moveset if moveset else Moveset()
 
     def get_stats(self) -> str:
         return f"{self.name} Stats: {self.stats}"
 
-    def attack(
-        self, target: "Pokemon", base_power: float, relations: TypeRelations
-    ) -> None:
-        attack_type = self.types[0]
+    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> None:
+        attack_type = move.type
 
         multiplier = relations.get_effectiveness(attack_type, target.types)
 
-        damage = base_power * self.attack_power * multiplier
+        damage = move.power * self.attack_power * multiplier
 
-        print(f"{self.name} attacks {target.name}")
+        print(f"{self.name} attacks {target.name} with {move.name}")
         print(f"Effectiveness: x{multiplier}")
 
         target.defender(damage)
@@ -138,6 +234,41 @@ class Pokemon:
             print(f"{self.name} evolved to level {self.level}")
         else:
             print("Cannot evolve to same or lower level")
+
+
+class CombatEngine:
+    """
+    Implementa los metodos para el calculo de damage y una funcion
+    con numeros pseudoaleatorios para definir cuando se falla un ataque
+
+    Asumiendo que existe class Move con las siguientes caracteristicas:
+    Move: Debe contener los atributos de un ataque: name, type (string), power,
+    accuracy, y pp.
+    """
+
+    @staticmethod
+    def hit_accuracy(attack: Move, defender_types: List[str]):
+        tp = TypeRelations()
+        effect = tp.get_effectiveness(attack.type, defender_types)
+        factor = random.random()
+
+        return attack.accuracy > (factor * effect) / (
+            factor + 1
+        ), effect  # si es mayor entonces el ataque acierta
+
+    @staticmethod
+    def calculate_damage(attacker: Pokemon, defender: Pokemon, move: Move):
+        att_stats = attacker.stats
+        def_stats = defender.stats
+        is_able_to_attack, multiplier = CombatEngine.hit_accuracy(move, defender.types)
+        # tener en cuenta quien tiene mas nivel
+        rlevel = attacker.level / defender.level
+        # tener en cuenta si atacante tiene mas ataque que la defensa del defensa
+        rdef = att_stats.attack / def_stats.defense
+        # ataque -> si is_able_to_attack = 0 entonces ataque fallido, sino, calcular ataque
+        damage = int(is_able_to_attack) * (rlevel * rdef * multiplier * move.power)
+        print(f"Damage: {damage}")
+        return damage
 
 
 class Trainer:
@@ -182,18 +313,45 @@ def main() -> None:
         hp=20, attack=1, defense=0.5, special_attack=1, special_defense=1, speed=1
     )
 
-    charmander = Pokemon("Charmander", ["Fire"], charmander_stats, life=20, attack=2)
-    bulbasaur = Pokemon("Bulbasaur", ["Grass"], bulbasaur_stats, life=20, defense=0.3)
-    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, life=20)
+    # Crear movimientos
+    flame_burst = Move(name="Flame Burst", type="Fire", power=5, accuracy=100, pp=25)
+    vine_whip = Move(name="Vine Whip", type="Grass", power=5, accuracy=100, pp=25)
+    water_gun = Move(name="Water Gun", type="Water", power=5, accuracy=100, pp=25)
+
+    # Crear Pokémon con moveset
+    charmander_moveset = Moveset([flame_burst])
+    charmander = Pokemon(
+        "Charmander",
+        ["Fire"],
+        charmander_stats,
+        life=20,
+        attack=2,
+        moveset=charmander_moveset,
+    )
+
+    bulbasaur_moveset = Moveset([vine_whip])
+    bulbasaur = Pokemon(
+        "Bulbasaur",
+        ["Grass"],
+        bulbasaur_stats,
+        life=20,
+        defense=0.3,
+        moveset=bulbasaur_moveset,
+    )
+
+    squirtle_moveset = Moveset([water_gun])
+    squirtle = Pokemon(
+        "Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset
+    )
 
     print("\n--- BATTLE 1 ---")
-    charmander.attack(bulbasaur, base_power=5, relations=relations)
+    charmander.attack(bulbasaur, flame_burst, relations)
 
     print("\n--- BATTLE 2 ---")
-    bulbasaur.attack(squirtle, base_power=5, relations=relations)
+    bulbasaur.attack(squirtle, vine_whip, relations)
 
     print("\n--- BATTLE 3 ---")
-    squirtle.attack(charmander, base_power=5, relations=relations)
+    squirtle.attack(charmander, water_gun, relations)
 
 
 if __name__ == "__main__":
