@@ -1,0 +1,49 @@
+[project]
+name = "poke"
+version = "0.0.1"
+description = "Pokemon didatic library"
+requires-python = ">=3.10.10"
+
+dependencies = []
+
+# Ruff
+[tool.ruff]
+line-length = 100
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort (import sorting)
+]
+
+[tool.ruff.lint.isort]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+lines-after-imports = 2
+known-first-party = ["app"]
+combine-as-imports = true
+force-single-line = false
+split-on-trailing-comma = false
+force-sort-within-sections = false
+from-first = false
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# Mypy
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+python_version = "3.10"
+mypy_path = "."
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
