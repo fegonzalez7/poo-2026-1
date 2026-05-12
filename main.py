@@ -1,6 +1,6 @@
 import random
 
-import time  # noqa: I001
+import time  
 from typing import List
 
 
@@ -121,7 +121,7 @@ class Moveset:
             for move in moves:
                 self.add_move(move)
 
-    def add_move(self, move: Move) -> bool:  # noqa: F811
+    def add_move(self, move: Move) -> bool:  
         if len(self.moves) < 4:
             self.moves.append(move)
             print(f"¡El Pokémon aprendió {move.name}!")
@@ -185,21 +185,13 @@ class Pokemon:
         name: str,
         types: List[str],
         stats: Stats,
-        #life: float = 10,
-        #attack: float = 1,
-        #defense: float = 0.5,
         level: int = 1,
-        #special_ability: str = "None",
         moveset: Moveset | None = None,
     ) -> None:
         self.name = name
         self.types = types
-        #self.life = life
-        #self.attack_power = attack
         self.stats = stats
-        #self.defense = defense
         self.level = level
-        #self.special_ability = special_ability
         self.moveset = moveset if moveset else Moveset()
 
     def get_stats(self) -> str:
@@ -218,17 +210,7 @@ class Pokemon:
         return target.defender(damage)
     
             
-        '''attack_type = movement.type
-
-        multiplier = relations.get_effectiveness(attack_type, target.types)
-
-        damage = movement.power * self.attack_power * multiplier
-
-        print(f"{self.name} attacks {target.name} with {movement.name}")
         
-
-        target.defender(damage)
-        '''
     def defender(self, damage: float) -> None:
         damage_received = damage * (1 - self.stats.defense )
 
@@ -311,13 +293,64 @@ class Trainer:
             )
         else:
             print("Indice de Pokémon no valido.")
+            
+class Field:
+    '''
+    Implementa el campo de batalla, con sus caracteristicas y efectos, parte de un entrenador, 
+    sus pokemones y determina los turnos a partir de la velocidad de los pokemones,
+    ademas de determinar el orden de ataque y defensa.'''
 
+    def __init__(self, trainer1: Trainer, trainer2: Trainer):
+        self.trainer1 = trainer1
+        self.trainer2 = trainer2
+        
+    def determine_turn_order(self):
+        pokemon1 = self.trainer1.get_active_pokemon()
+        pokemon2 = self.trainer2.get_active_pokemon()
+        
+        if pokemon1.stats.speed > pokemon2.stats.speed:
+            return pokemon1, pokemon2
+        elif pokemon2.stats.speed > pokemon1.stats.speed:
+            return pokemon2, pokemon1
+        else:
+            # Si la velocidad es igual, se decide al azar
+            return random.choice([(pokemon1, pokemon2), (pokemon2, pokemon1)])
+        
+    def battlefield(self):
+        
+            print(F"BATALLA  : {self.trainer1.nombre} vs {self.trainer2.nombre}")
+
+            attacker, defender = self.determine_turn_order()
+            
+            print(f"{attacker.name} ataca primero contra {defender.name}")
+            for move in attacker.moveset.get_moves():
+                print(f"{attacker.name} puede usar {move.name} (Tipo: {move.type}, Poder: {move.power}, PP: {move.pp})")
+            
+            while True:
+                try:
+                    choice = int(input(f"Selecciona el movimiento para {attacker.name} (1-{len(attacker.moveset.get_moves())}): ")) - 1
+                    if 0 <= choice < len(attacker.moveset.get_moves()):
+                        break
+                    else:
+                        raise ValueError("Número fuera de rango.")
+                except ValueError as e:
+                    print(f"Entrada no válida. {e}")
+            
+            movement = attacker.moveset.get_moves()[choice]
+            
+            print(f"{attacker.name} usa {movement.name}!")
+            
+
+            attacker.attack(defender.get_active_pokemon(), movement)
+            
+        
+            # Aquí se pueden implementar las acciones de ataque y defensa
 
 def main() -> None:
     
 
     charmander_stats = Stats(
-        hp=20, attack=2, defense=0.5, special_attack=1, special_defense=1, speed=1
+        hp=20, attack=2, defense=0.5, special_attack=1, special_defense=1, speed=2
     )
     bulbasaur_stats = Stats(
         hp=20, attack=1, defense=0.3, special_attack=1, special_defense=1, speed=1
@@ -337,8 +370,6 @@ def main() -> None:
         "Charmander",
         ["Fire"],
         charmander_stats,
-        #life=20,
-        #attack=2,
         moveset=charmander_moveset,
     )
 
@@ -347,18 +378,16 @@ def main() -> None:
         "Bulbasaur",
         ["Grass"],
         bulbasaur_stats,
-        #life=20,
-        #defense=0.3,
         moveset=bulbasaur_moveset,
     )
 
     squirtle_moveset = Moveset([water_gun])
     squirtle = Pokemon(
-        "Squirtle", ["Water"], squirtle_stats, #life=20, 
+        "Squirtle", ["Water"], squirtle_stats, 
         moveset=squirtle_moveset
     )
 
-    print("\n--- BATTLE 1 ---")
+    '''print("\n--- BATTLE 1 ---")
     charmander.attack(bulbasaur, flame_burst)
 
     print("\n--- BATTLE 2 ---")
@@ -366,7 +395,14 @@ def main() -> None:
 
     print("\n--- BATTLE 3 ---")
     squirtle.attack(charmander, water_gun)
-
+    '''
+    entrenador1 = Trainer("Ash", "Team Rocket", [charmander, bulbasaur])
+    entrenador2 = Trainer("Misty", "Team Water", [squirtle])
+    
+    campo = Field(entrenador1, entrenador2)
+    campo.battlefield()
 
 if __name__ == "__main__":
     main()
+    
+    
