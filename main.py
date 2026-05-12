@@ -1,4 +1,5 @@
 import random
+
 import time  # noqa: I001
 from typing import List
 
@@ -61,12 +62,12 @@ class TypeRelations:
 class Stats:
     def __init__(
         self,
-        hp: float,
-        attack: float,
-        defense: float,
-        special_attack: float,
-        special_defense: float,
-        speed: float,
+        hp: float = 10.0,
+        attack: float = 1.0,
+        defense: float = 0.5,
+        special_attack: float = 1.0,
+        special_defense: float = 1.0,
+        speed: float = 1.0,
     ):
         self.hp = hp
         self.attack = attack
@@ -120,7 +121,7 @@ class Moveset:
             for move in moves:
                 self.add_move(move)
 
-    def add_move(self, move: Move) -> bool:
+    def add_move(self, move: Move) -> bool:  # noqa: F811
         if len(self.moves) < 4:
             self.moves.append(move)
             print(f"¡El Pokémon aprendió {move.name}!")
@@ -184,42 +185,54 @@ class Pokemon:
         name: str,
         types: List[str],
         stats: Stats,
-        life: float = 10,
-        attack: float = 1,
-        defense: float = 0.5,
+        #life: float = 10,
+        #attack: float = 1,
+        #defense: float = 0.5,
         level: int = 1,
-        special_ability: str = "None",
+        #special_ability: str = "None",
         moveset: Moveset | None = None,
     ) -> None:
         self.name = name
         self.types = types
-        self.life = life
-        self.attack_power = attack
+        #self.life = life
+        #self.attack_power = attack
         self.stats = stats
-        self.defense = defense
+        #self.defense = defense
         self.level = level
-        self.special_ability = special_ability
+        #self.special_ability = special_ability
         self.moveset = moveset if moveset else Moveset()
 
     def get_stats(self) -> str:
         return f"{self.name} Stats: {self.stats}"
 
-    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> None:
-        attack_type = move.type
+    def attack(self, target: "Pokemon", movement: Move) -> None:
+        ce = CombatEngine()
+        _ , multiplier  =  ce.hit_accuracy(movement, target.types)
+        
+        print(f"{self.name} attacks {target.name} with {movement.name}")
+        
+        print(f"Effectiveness: x{multiplier}")
+        
+        damage = ce.calculate_damage(self, target, movement)
+        
+        return target.defender(damage)
+    
+            
+        '''attack_type = movement.type
 
         multiplier = relations.get_effectiveness(attack_type, target.types)
 
-        damage = move.power * self.attack_power * multiplier
+        damage = movement.power * self.attack_power * multiplier
 
-        print(f"{self.name} attacks {target.name} with {move.name}")
-        print(f"Effectiveness: x{multiplier}")
+        print(f"{self.name} attacks {target.name} with {movement.name}")
+        
 
         target.defender(damage)
-
+        '''
     def defender(self, damage: float) -> None:
-        damage_received = damage * (1 - self.defense)
+        damage_received = damage * (1 - self.stats.defense )
 
-        self.life = self.life - damage_received
+        self.life = self.stats.hp - damage_received
 
         if self.life < 0:
             self.life = 0
@@ -301,7 +314,7 @@ class Trainer:
 
 
 def main() -> None:
-    relations = TypeRelations()
+    
 
     charmander_stats = Stats(
         hp=20, attack=2, defense=0.5, special_attack=1, special_defense=1, speed=1
@@ -324,8 +337,8 @@ def main() -> None:
         "Charmander",
         ["Fire"],
         charmander_stats,
-        life=20,
-        attack=2,
+        #life=20,
+        #attack=2,
         moveset=charmander_moveset,
     )
 
@@ -334,24 +347,25 @@ def main() -> None:
         "Bulbasaur",
         ["Grass"],
         bulbasaur_stats,
-        life=20,
-        defense=0.3,
+        #life=20,
+        #defense=0.3,
         moveset=bulbasaur_moveset,
     )
 
     squirtle_moveset = Moveset([water_gun])
     squirtle = Pokemon(
-        "Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset
+        "Squirtle", ["Water"], squirtle_stats, #life=20, 
+        moveset=squirtle_moveset
     )
 
     print("\n--- BATTLE 1 ---")
-    charmander.attack(bulbasaur, flame_burst, relations)
+    charmander.attack(bulbasaur, flame_burst)
 
     print("\n--- BATTLE 2 ---")
-    bulbasaur.attack(squirtle, vine_whip, relations)
+    bulbasaur.attack(squirtle, vine_whip)
 
     print("\n--- BATTLE 3 ---")
-    squirtle.attack(charmander, water_gun, relations)
+    squirtle.attack(charmander, water_gun)
 
 
 if __name__ == "__main__":
