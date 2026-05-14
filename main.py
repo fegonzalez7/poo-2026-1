@@ -214,13 +214,13 @@ class Pokemon:
     def defender(self, damage: float) -> None:
         damage_received = damage * (1 - self.stats.defense )
 
-        self.life = self.stats.hp - damage_received
+        self.stats.hp = self.stats.hp - damage_received
 
-        if self.life < 0:
-            self.life = 0
+        if self.stats.hp <= 0:
+            self.stats.hp = 0
 
         print(f"{self.name} received {damage_received:.2f} damage")
-        print(f"Remaining life: {self.life:.2f}")
+        print(f"Remaining life: {self.stats.hp:.2f}")
 
     def evolve(self, new_level: int, new_ability: str) -> None:
         if new_level > self.level:
@@ -304,28 +304,48 @@ class Field:
         self.trainer1 = trainer1
         self.trainer2 = trainer2
         
+        
+    
     def determine_turn_order(self):
         pokemon1 = self.trainer1.get_active_pokemon()
         pokemon2 = self.trainer2.get_active_pokemon()
         
         if pokemon1.stats.speed > pokemon2.stats.speed:
-            return pokemon1, pokemon2
+            return [pokemon1, pokemon2]
         elif pokemon2.stats.speed > pokemon1.stats.speed:
-            return pokemon2, pokemon1
+            return [pokemon2, pokemon1]
         else:
             # Si la velocidad es igual, se decide al azar
             return random.choice([(pokemon1, pokemon2), (pokemon2, pokemon1)])
         
-    def battlefield(self):
+            
+    def battle_finished(self,participants):
         
-            print(F"BATALLA  : {self.trainer1.nombre} vs {self.trainer2.nombre}")
+        
+        for p in participants:
+            if p.stats.hp <= 0:
+                return True
+            return False
+        
+    def battlefield(self):
+        participants = self.determine_turn_order()
+        turn_index = 0
+        battle_active = True
 
-            attacker, defender = self.determine_turn_order()
+        while battle_active and not self.battle_finished(participants):
+            print("\n" + "=" * 60)
+            print(F"BATALLA  : {self.trainer1.nombre} vs {self.trainer2.nombre}")
+            print("\n" + "=" * 60)
             
-            print(f"{attacker.name} ataca primero contra {defender.name}")
-            for move in attacker.moveset.get_moves():
-                print(f"{attacker.name} puede usar {move.name} (Tipo: {move.type}, Poder: {move.power}, PP: {move.pp})")
+            attacker = participants[turn_index]
+            defender = participants[1 - turn_index]
             
+            print(f"\n TURNO de {attacker.name.upper()} (Velocidad: {attacker.stats.speed}) CONTRA {defender.name.upper()} (Velocidad: {defender.stats.speed})")
+            
+            print(f"\n Movimientos disponibles para {attacker.name}:")
+            for i, move in enumerate(attacker.moveset.get_moves()):
+                print(f"[{i+1}] {move.name} | Tipo: {move.type} | Poder: {move.power} | PP: {move.pp}")
+        
             while True:
                 try:
                     choice = int(input(f"Selecciona el movimiento para {attacker.name} (1-{len(attacker.moveset.get_moves())}): ")) - 1
@@ -337,14 +357,63 @@ class Field:
                     print(f"Entrada no válida. {e}")
             
             movement = attacker.moveset.get_moves()[choice]
-            
+                
             print(f"{attacker.name} usa {movement.name}!")
-            
 
-            attacker.attack(defender.get_active_pokemon(), movement)
+            attacker.attack(defender, movement)
+                
+            if self.battle_finished(participants):
+                print(f"\n¡{defender.name} ha sido derrotado! {attacker.name} gana la batalla.")
+                break
             
-        
-            # Aquí se pueden implementar las acciones de ataque y defensa
+            print(f"\n{'='*20}")
+            print("¿Qué deseas hacer?")
+            print("[1] Continuar la batalla")
+            print("[2] Cambiar de Pokémon")
+            print("[3] Rendirse")
+            print(f"{'='*20}")
+            while True:
+                try:
+                    decision = int(input("Selecciona una opción (1-3): "))
+                    if decision == 1:
+                        # Continuar: cambiar turno
+                        turn_index = 1 - turn_index
+                        time.sleep(1)
+                        break
+                    elif decision == 2:
+                        # Cambiar Pokémon
+                        trainer = self.trainer1 if attacker in self.trainer1.pokemon else self.trainer2
+                        print(f"\nPokémon disponibles en el equipo de {trainer.nombre}:")
+                        for i, pok in enumerate(trainer.pokemon):
+                            print(f"[{i+1}] {pok.name} (Life: {pok.life:.1f}/{pok.stats.hp})")
+                        
+                        while True:
+                            try:
+                                pok_choice = int(input("Selecciona Pokémon (1-{}): ".format(len(trainer.pokemon)))) - 1
+                                if 0 <= pok_choice < len(trainer.pokemon):
+                                    trainer.switch_pokemon(pok_choice)
+                                    print(f"¡{trainer.nombre} envió a {trainer.get_active_pokemon().name}!")
+                                    participants[turn_index] = trainer.get_active_pokemon()
+                                    participants[turn_index].life = participants[turn_index].stats.hp  # Reset vida
+                                    # Cambiar turno
+                                    turn_index = 1 - turn_index
+                                    time.sleep(1)
+                                    break
+                                else:
+                                    raise ValueError("Índice inválido")
+                            except ValueError as e:
+                                print(f"❌ {e}")
+                        break
+                    elif decision == 3:
+                        # Rendirse
+                        print(f"\n¡{trainer.nombre} se rindió!")
+                        battle_active = False
+                        break
+                    else:
+                        raise ValueError("Opción no válida (1-3)")
+                except ValueError as e:
+                    print(f"❌ {e}")
+                # Aquí se pueden implementar las acciones de ataque y defensa
 
 def main() -> None:
     
