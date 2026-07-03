@@ -1,0 +1,79 @@
+classDiagram
+  direction TB
+
+  class Stats {
+    +hp : float
+    +attack : float
+    +defense : float
+    +special_attack : float
+    +special_defense : float
+    +speed : float
+    +__str__() str
+  }
+
+  class Move {
+    -_name : str
+    -_type : str
+    -_power : float
+    -_accuracy : int
+    -_pp : int
+    +name() str
+    +type() str
+    +power() float
+    +accuracy() int
+    +pp() int
+  }
+
+  class Moveset {
+    -moves : List~Move~
+    +add_move(move) bool
+    +remove_move(index) bool
+    +replace_move(index, new_move) bool
+    +get_moves() List~Move~
+    +show_moves() None
+  }
+
+  class Pokemon {
+    +name : str
+    +types : List~str~
+    +life : float
+    +attack_power : float
+    +defense : float
+    +level : int
+    +special_ability : str
+    +stats : Stats
+    +moveset : Moveset
+    +get_stats() str
+    +attack(target, move, relations) None
+    +defender(damage) None
+    +evolve(new_level, new_ability) None
+  }
+
+  class Trainer {
+    +nombre : str
+    +team : str
+    +pokemon : List~Pokemon~
+    +add_pokemon(pokemon) None
+    +get_active_pokemon() Pokemon
+    +switch_pokemon(pokemon_index) None
+  }
+
+  class TypeRelations {
+    -type_chart : dict
+    +get_effectiveness(attack_type, defender_types) float
+  }
+
+  class CombatEngine {
+    <<static>>
+    +hit_accuracy(attack, defender_types)$ tuple~bool, float~
+    +calculate_damage(attacker, defender, move)$ float
+  }
+
+  Pokemon *-- Stats : contains
+  Pokemon *-- Moveset : contains
+  Moveset *-- Move : 0..4
+  Trainer o-- Pokemon : 1..6
+  CombatEngine ..> Move : uses
+  CombatEngine ..> Pokemon : uses
+  CombatEngine ..> TypeRelations : delegates
+  Pokemon ..> TypeRelations : uses

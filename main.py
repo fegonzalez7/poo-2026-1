@@ -1,8 +1,7 @@
-from scr.engine.type_relations import TypeRelations
-from scr.models.move import Move, Moveset
-from scr.models.pokemon import Pokemon
-from scr.models.stats import Stats
-
+from src.engine.type_relations import TypeRelations
+from src.models.move import Move, Moveset
+from src.models.pokemon import Pokemon
+from src.models.stats import Stats
 
 def main() -> None:
     relations = TypeRelations()
