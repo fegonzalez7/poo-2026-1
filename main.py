@@ -3,6 +3,7 @@ from src.models.move import Move, Moveset
 from src.models.pokemon import Pokemon
 from src.models.stats import Stats
 
+
 def main() -> None:
     relations = TypeRelations()
 
