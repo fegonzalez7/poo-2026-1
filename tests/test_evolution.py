@@ -101,5 +101,6 @@ class TestMovesetManagement(unittest.TestCase):
         result = moveset.replace_move(3, Move("Flamethrower", "Fire", 10, 95, 15))
         self.assertFalse(result)
 
+
 if __name__ == "__main__":
     unittest.main()
