@@ -5,6 +5,7 @@ from src.engine.type_relations import TypeRelations
 from src.models.move import Move
 from src.models.pokemon import Pokemon
 
+
 class CombatEngine:
     """
     Implementa los metodos para el calculo de damage y una funcion
