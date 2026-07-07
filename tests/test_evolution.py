@@ -2,11 +2,19 @@ from main import Pokemon, Stats, Moveset, Move
 
 
 def make_charmander(level=1):
-    stats = Stats(hp=20, attack=2, defense=0.3, special_attack=1, special_defense=1, speed=2)
+    stats = Stats(
+        hp=20, attack=2, defense=0.3, special_attack=1, special_defense=1, speed=2
+    )
     move = Move(name="Flame Burst", type="Fire", power=5, accuracy=100, pp=25)
 
-    return Pokemon("Charmander", ["Fire"], stats, life=stats.hp, level=level,
-                    moveset=Moveset([move]))
+    return Pokemon(
+        "Charmander",
+        ["Fire"],
+        stats,
+        life=stats.hp,
+        level=level,
+        moveset=Moveset([move]),
+    )
 
 
 def test_evolve_increases_level_to_correct_value():

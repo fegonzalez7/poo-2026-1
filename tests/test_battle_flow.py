@@ -2,23 +2,49 @@ from main import Pokemon, Stats, Move, Moveset, Trainer, TypeRelations
 
 
 def make_strong_pokemon(name="Strong pokemon", speed=10):
-    stats = Stats(hp=100, attack=9999, defense=0.1,  # Caso de daño extremo
-                  special_attack=1, special_defense=1, speed=speed)
-    move = Move(name="Overpowered", type="Fire", power=100,
-                accuracy=100, pp=10)
-    return Pokemon(name, ["Fire"], stats, life=stats.hp, attack=stats.attack,
-                    defense=stats.defense, moveset=Moveset([move]))
+    stats = Stats(
+        hp=100,
+        attack=9999,
+        defense=0.1,  # Caso de daño extremo
+        special_attack=1,
+        special_defense=1,
+        speed=speed,
+    )
+    move = Move(name="Overpowered", type="Fire", power=100, accuracy=100, pp=10)
+    return Pokemon(
+        name,
+        ["Fire"],
+        stats,
+        life=stats.hp,
+        attack=stats.attack,
+        defense=stats.defense,
+        moveset=Moveset([move]),
+    )
 
 
 def make_weak_pokemon(name="Weak pokemon", speed=1):
-    stats = Stats(hp=1, attack=1, defense=0.1,  # Minimo ataque, debe perder claramente contra Strong
-                  special_attack=1, special_defense=1, speed=speed)
+    stats = Stats(
+        hp=1,
+        attack=1,
+        defense=0.1,  # Minimo ataque, debe perder claramente contra Strong
+        special_attack=1,
+        special_defense=1,
+        speed=speed,
+    )
     move = Move("Tackle", "Grass", 1, 100, 10)
-    return Pokemon(name, ["Grass"], stats, life=stats.hp, attack=stats.attack,
-                    defense=stats.defense, moveset=Moveset([move]))
+    return Pokemon(
+        name,
+        ["Grass"],
+        stats,
+        life=stats.hp,
+        attack=stats.attack,
+        defense=stats.defense,
+        moveset=Moveset([move]),
+    )
 
 
 # Daño y derrota
+
 
 def test_attack_reduces_defender_life():
     relations = TypeRelations()
@@ -55,6 +81,7 @@ def test_life_does_not_go_below_zero():
 
 # Batalla completa simulada turno a turno con los métodos reales de Pokemon
 
+
 def test_full_battle_declares_a_winner():
     relations = TypeRelations()
     strong = make_strong_pokemon()
@@ -63,7 +90,11 @@ def test_full_battle_declares_a_winner():
     trainer1 = Trainer("Ash", "Team A", [strong])
     trainer2 = Trainer("Misty", "Team B", [weak])
 
-    attacker, defender = trainer1.get_active_pokemon(), trainer2.get_active_pokemon()
+    attacker = trainer1.get_active_pokemon()
+    defender = trainer2.get_active_pokemon()
+
+    assert attacker is not None
+    assert defender is not None
 
     # Se simula la batalla turno a turno usando Pokemon.attack() hasta que
     # uno de los dos se quede sin vida.
@@ -84,16 +115,18 @@ def test_full_battle_with_multiple_rival_pokemon():
     weak1 = make_weak_pokemon("Weak 1")
     weak2 = make_weak_pokemon("Weak 2")
 
-    trainer1 = Trainer("Ash", "Team A", [strong])
     trainer2 = Trainer("Misty", "Team B", [weak1, weak2])
 
+    target = trainer2.get_active_pokemon()
+    assert target is not None
+
     # Strong derrota al primer Pokémon del equipo rival
-    strong.attack(trainer2.get_active_pokemon(), strong.moveset.get_moves()[0], relations)
-    assert trainer2.get_active_pokemon().life == 0
+    strong.attack(target, strong.moveset.get_moves()[0], relations)
+    assert target.life == 0
 
     # El rival cambia a su segundo Pokémon y también es derrotado
     trainer2.switch_pokemon(1)
-    strong.attack(trainer2.get_active_pokemon(), strong.moveset.get_moves()[0], relations)
+    strong.attack(target, strong.moveset.get_moves()[0], relations)
 
     assert weak1.life == 0
     assert weak2.life == 0
@@ -102,6 +135,7 @@ def test_full_battle_with_multiple_rival_pokemon():
 
 # Manejo del equipo (Trainer)
 
+
 def test_switch_changes_active_pokemon():
     p1 = make_strong_pokemon()
     p2 = make_weak_pokemon()
@@ -109,7 +143,7 @@ def test_switch_changes_active_pokemon():
     trainer = Trainer("Ash", "Team A", [p1, p2])
     trainer.switch_pokemon(1)
 
-    assert trainer.get_active_pokemon().name == "Weak pokemon"
+    assert trainer.get_active_pokemon() is p2
 
 
 def test_add_pokemon_to_team():
